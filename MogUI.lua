@@ -1,6 +1,7 @@
 -- =============================================
--- MOGUI - Fixed & Working UI Library
--- Linoria + Rayfield Mix | Left/Right GroupBox | Color Picker | Dropdown
+-- MOGUI - Final Stable Release
+-- Left GroupBox + Right GroupBox + Color Picker + Dropdown
+-- Fully Fixed Slider Input - No more ghost movement
 -- =============================================
 
 local TweenService = game:GetService("TweenService")
@@ -14,10 +15,10 @@ local playerGui = player:WaitForChild("PlayerGui")
 local MogUI = {}
 MogUI.__index = MogUI
 
--- ==================== CREATE LIBRARY ====================
 function MogUI.new(title)
     local self = setmetatable({}, MogUI)
-    
+
+    -- ScreenGui
     self.ScreenGui = Instance.new("ScreenGui")
     self.ScreenGui.Name = "MogUI"
     self.ScreenGui.ResetOnSpawn = false
@@ -25,8 +26,8 @@ function MogUI.new(title)
 
     -- Main Frame
     self.Main = Instance.new("Frame")
-    self.Main.Size = UDim2.new(0, 740, 0, 720)
-    self.Main.Position = UDim2.new(0.5, -370, 0.5, -360)
+    self.Main.Size = UDim2.new(0, 760, 0, 720)
+    self.Main.Position = UDim2.new(0.5, -380, 0.5, -360)
     self.Main.BackgroundColor3 = Color3.fromRGB(18, 18, 24)
     self.Main.BorderSizePixel = 0
     self.Main.Visible = false
@@ -36,7 +37,7 @@ function MogUI.new(title)
 
     local stroke = Instance.new("UIStroke")
     stroke.Color = Color3.fromRGB(255, 215, 80)
-    stroke.Thickness = 2.6
+    stroke.Thickness = 2.8
     stroke.Parent = self.Main
 
     -- Title Bar
@@ -66,7 +67,7 @@ function MogUI.new(title)
     self.CloseBtn.Parent = self.TitleBar
     Instance.new("UICorner", self.CloseBtn).CornerRadius = UDim.new(0, 10)
 
-    -- Content with Left & Right
+    -- Content Area
     self.Content = Instance.new("Frame")
     self.Content.Size = UDim2.new(1, -20, 1, -80)
     self.Content.Position = UDim2.new(0, 10, 0, 70)
@@ -93,7 +94,7 @@ function MogUI.new(title)
     self:SetupClose()
     self:SetupKeybind(Enum.KeyCode.Comma)
 
-    print("✅ MogUI (Linoria + Rayfield Mix) Loaded - Press , to open")
+    print("✅ MogUI Final Release Loaded - Press , to open")
     return self
 end
 
@@ -262,34 +263,52 @@ function MogUI:CreateGroupbox(parent, title)
         Instance.new("UICorner", bar).CornerRadius = UDim.new(1, 0)
 
         local fill = Instance.new("Frame")
-        fill.Size = UDim2.new(0.5, 0, 1, 0)
+        fill.Size = UDim2.new(((default - min) / (max - min)), 0, 1, 0)
         fill.BackgroundColor3 = Color3.fromRGB(255, 215, 80)
         fill.Parent = bar
         Instance.new("UICorner", fill).CornerRadius = UDim.new(1, 0)
 
         local value = default
+        local sliding = false
 
-        local function update(p)
-            p = math.clamp(p, 0, 1)
-            value = math.floor(min + (max - min) * p)
+        local function update(percent)
+            percent = math.clamp(percent, 0, 1)
+            value = math.floor(min + (max - min) * percent)
             label.Text = text .. ": " .. value
-            fill.Size = UDim2.new(p, 0, 1, 0)
+            fill.Size = UDim2.new(percent, 0, 1, 0)
             if callback then callback(value) end
         end
 
-        bar.InputBegan:Connect(function(i)
-            if i.UserInputType == Enum.UserInputType.MouseButton1 then
-                local p = (i.Position.X - bar.AbsolutePosition.X) / bar.AbsoluteSize.X
-                update(p)
+        bar.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                sliding = true
+                local percent = (input.Position.X - bar.AbsolutePosition.X) / bar.AbsoluteSize.X
+                update(percent)
             end
         end)
 
-        UserInputService.InputChanged:Connect(function(i)
-            if i.UserInputType == Enum.UserInputType.MouseMovement then
-                local p = (i.Position.X - bar.AbsolutePosition.X) / bar.AbsoluteSize.X
-                update(p)
+        bar.InputEnded:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                sliding = false
             end
         end)
+
+        -- Only update when sliding on this specific slider
+        local inputConn = UserInputService.InputChanged:Connect(function(input)
+            if sliding and input.UserInputType == Enum.UserInputType.MouseMovement then
+                local percent = (input.Position.X - bar.AbsolutePosition.X) / bar.AbsoluteSize.X
+                update(percent)
+            end
+        end)
+
+        -- Cleanup
+        group.AncestryChanged:Connect(function()
+            if not group:IsDescendantOf(game) and inputConn then
+                inputConn:Disconnect()
+            end
+        end)
+
+        return {Update = update}
     end
 
     function groupbox:AddDropdown(text, options, default, callback)
@@ -424,5 +443,5 @@ function MogUI:CreateGroupbox(parent, title)
     return groupbox
 end
 
-print("✅ MogUI Fixed & Loaded - Use library:AddLeftGroupbox() and library:AddRightGroupbox()")
+print("✅ MogUI Final Stable Release - Ready for release")
 return MogUI
