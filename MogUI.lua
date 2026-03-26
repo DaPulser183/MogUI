@@ -1,7 +1,7 @@
 -- =============================================
 -- MOGUI - Final Stable Release
--- Left GroupBox + Right GroupBox + Color Picker + Dropdown
--- Fully Fixed Slider Input - No more ghost movement
+-- Left + Right GroupBox | Slider | Dropdown | Color Picker
+-- Gold "Mogger" Accent Theme | Linoria-inspired
 -- =============================================
 
 local TweenService = game:GetService("TweenService")
@@ -36,7 +36,7 @@ function MogUI.new(title)
     Instance.new("UICorner", self.Main).CornerRadius = UDim.new(0, 14)
 
     local stroke = Instance.new("UIStroke")
-    stroke.Color = Color3.fromRGB(255, 215, 80)
+    stroke.Color = Color3.fromRGB(255, 215, 80) -- Gold accent
     stroke.Thickness = 2.8
     stroke.Parent = self.Main
 
@@ -56,12 +56,13 @@ function MogUI.new(title)
     titleLabel.Font = Enum.Font.GothamBlack
     titleLabel.Parent = self.TitleBar
 
+    -- Close Button
     self.CloseBtn = Instance.new("TextButton")
     self.CloseBtn.Size = UDim2.new(0, 50, 0, 50)
     self.CloseBtn.Position = UDim2.new(1, -60, 0, 5)
     self.CloseBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
     self.CloseBtn.Text = "✕"
-    self.CloseBtn.TextColor3 = Color3.new(1,1,1)
+    self.CloseBtn.TextColor3 = Color3.new(1, 1, 1)
     self.CloseBtn.TextScaled = true
     self.CloseBtn.Font = Enum.Font.GothamBold
     self.CloseBtn.Parent = self.TitleBar
@@ -74,6 +75,7 @@ function MogUI.new(title)
     self.Content.BackgroundTransparency = 1
     self.Content.Parent = self.Main
 
+    -- Left & Right Scrolling Frames
     self.LeftFrame = Instance.new("ScrollingFrame")
     self.LeftFrame.Size = UDim2.new(0.48, 0, 1, 0)
     self.LeftFrame.BackgroundTransparency = 1
@@ -113,12 +115,17 @@ function MogUI:SetupDragging()
     UserInputService.InputChanged:Connect(function(input)
         if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
             local delta = input.Position - dragStart
-            self.Main.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+            self.Main.Position = UDim2.new(
+                startPos.X.Scale, startPos.X.Offset + delta.X,
+                startPos.Y.Scale, startPos.Y.Offset + delta.Y
+            )
         end
     end)
 
     UserInputService.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then dragging = false end
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
     end)
 end
 
@@ -156,7 +163,7 @@ function MogUI:CreateGroupbox(parent, title)
     local header = Instance.new("TextLabel")
     header.Size = UDim2.new(1, 0, 0, 40)
     header.BackgroundTransparency = 1
-    header.Text = "  " .. title
+    header.Text = " " .. title
     header.TextColor3 = Color3.fromRGB(255, 215, 80)
     header.TextXAlignment = Enum.TextXAlignment.Left
     header.TextScaled = true
@@ -178,7 +185,7 @@ function MogUI:CreateGroupbox(parent, title)
         btn.Size = UDim2.new(1, 0, 0, 45)
         btn.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
         btn.Text = text
-        btn.TextColor3 = Color3.new(1,1,1)
+        btn.TextColor3 = Color3.new(1, 1, 1)
         btn.TextScaled = true
         btn.Font = Enum.Font.GothamSemibold
         btn.Parent = container
@@ -197,7 +204,7 @@ function MogUI:CreateGroupbox(parent, title)
         label.Size = UDim2.new(0.75, 0, 1, 0)
         label.BackgroundTransparency = 1
         label.Text = text
-        label.TextColor3 = Color3.new(1,1,1)
+        label.TextColor3 = Color3.new(1, 1, 1)
         label.TextXAlignment = Enum.TextXAlignment.Left
         label.TextScaled = true
         label.Font = Enum.Font.Gotham
@@ -213,7 +220,7 @@ function MogUI:CreateGroupbox(parent, title)
         local knob = Instance.new("Frame")
         knob.Size = UDim2.new(0, 24, 0, 24)
         knob.Position = UDim2.new(0, 2, 0.5, -12)
-        knob.BackgroundColor3 = Color3.new(1,1,1)
+        knob.BackgroundColor3 = Color3.new(1, 1, 1)
         knob.Parent = toggleFrame
         Instance.new("UICorner", knob).CornerRadius = UDim.new(1, 0)
 
@@ -249,8 +256,8 @@ function MogUI:CreateGroupbox(parent, title)
         local label = Instance.new("TextLabel")
         label.Size = UDim2.new(1, 0, 0, 22)
         label.BackgroundTransparency = 1
-        label.Text = text .. ": " .. default
-        label.TextColor3 = Color3.new(1,1,1)
+        label.Text = text .. ": " .. tostring(default)
+        label.TextColor3 = Color3.new(1, 1, 1)
         label.TextScaled = true
         label.Font = Enum.Font.Gotham
         label.Parent = frame
@@ -293,7 +300,6 @@ function MogUI:CreateGroupbox(parent, title)
             end
         end)
 
-        -- Only update when sliding on this specific slider
         local inputConn = UserInputService.InputChanged:Connect(function(input)
             if sliding and input.UserInputType == Enum.UserInputType.MouseMovement then
                 local percent = (input.Position.X - bar.AbsolutePosition.X) / bar.AbsoluteSize.X
@@ -301,7 +307,7 @@ function MogUI:CreateGroupbox(parent, title)
             end
         end)
 
-        -- Cleanup
+        -- Cleanup connection when group is destroyed
         group.AncestryChanged:Connect(function()
             if not group:IsDescendantOf(game) and inputConn then
                 inputConn:Disconnect()
@@ -321,7 +327,7 @@ function MogUI:CreateGroupbox(parent, title)
         label.Size = UDim2.new(1, 0, 0, 25)
         label.BackgroundTransparency = 1
         label.Text = text
-        label.TextColor3 = Color3.new(1,1,1)
+        label.TextColor3 = Color3.new(1, 1, 1)
         label.TextScaled = true
         label.Font = Enum.Font.Gotham
         label.Parent = frame
@@ -330,8 +336,8 @@ function MogUI:CreateGroupbox(parent, title)
         btn.Size = UDim2.new(1, 0, 0, 38)
         btn.Position = UDim2.new(0, 0, 0, 30)
         btn.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
-        btn.Text = default or options[1]
-        btn.TextColor3 = Color3.new(1,1,1)
+        btn.Text = default or options[1] or "Select..."
+        btn.TextColor3 = Color3.new(1, 1, 1)
         btn.TextScaled = true
         btn.Font = Enum.Font.GothamSemibold
         btn.Parent = frame
@@ -351,9 +357,9 @@ function MogUI:CreateGroupbox(parent, title)
             isOpen = not isOpen
             if isOpen then
                 listFrame.Visible = true
-                TweenService:Create(listFrame, TweenInfo.new(0.35, Enum.EasingStyle.Back), {Size = UDim2.new(1,0,0,#options*38)}):Play()
+                TweenService:Create(listFrame, TweenInfo.new(0.35, Enum.EasingStyle.Back), {Size = UDim2.new(1, 0, 0, #options * 38)}):Play()
             else
-                TweenService:Create(listFrame, TweenInfo.new(0.3), {Size = UDim2.new(1,0,0,0)}):Play()
+                TweenService:Create(listFrame, TweenInfo.new(0.3), {Size = UDim2.new(1, 0, 0, 0)}):Play()
                 task.delay(0.35, function() listFrame.Visible = false end)
             end
         end)
@@ -363,7 +369,7 @@ function MogUI:CreateGroupbox(parent, title)
             optBtn.Size = UDim2.new(1, 0, 0, 36)
             optBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
             optBtn.Text = opt
-            optBtn.TextColor3 = Color3.new(1,1,1)
+            optBtn.TextColor3 = Color3.new(1, 1, 1)
             optBtn.TextScaled = true
             optBtn.Font = Enum.Font.Gotham
             optBtn.Parent = listFrame
@@ -372,7 +378,7 @@ function MogUI:CreateGroupbox(parent, title)
             optBtn.MouseButton1Click:Connect(function()
                 btn.Text = opt
                 isOpen = false
-                TweenService:Create(listFrame, TweenInfo.new(0.3), {Size = UDim2.new(1,0,0,0)}):Play()
+                TweenService:Create(listFrame, TweenInfo.new(0.3), {Size = UDim2.new(1, 0, 0, 0)}):Play()
                 task.delay(0.35, function() listFrame.Visible = false end)
                 if callback then callback(opt) end
             end)
@@ -389,7 +395,7 @@ function MogUI:CreateGroupbox(parent, title)
         label.Size = UDim2.new(1, 0, 0, 25)
         label.BackgroundTransparency = 1
         label.Text = text
-        label.TextColor3 = Color3.new(1,1,1)
+        label.TextColor3 = Color3.new(1, 1, 1)
         label.TextScaled = true
         label.Font = Enum.Font.Gotham
         label.Parent = frame
@@ -404,12 +410,13 @@ function MogUI:CreateGroupbox(parent, title)
         local hueBar = Instance.new("Frame")
         hueBar.Size = UDim2.new(0, 28, 0, 60)
         hueBar.Position = UDim2.new(0, 100, 0, 30)
-        hueBar.BackgroundColor3 = Color3.new(1,1,1)
+        hueBar.BackgroundColor3 = Color3.new(1, 1, 1)
         hueBar.Parent = frame
+
         local hueGradient = Instance.new("UIGradient", hueBar)
         hueGradient.Color = ColorSequence.new{
-            ColorSequenceKeypoint.new(0, Color3.fromHSV(0,1,1)),
-            ColorSequenceKeypoint.new(1, Color3.fromHSV(1,1,1))
+            ColorSequenceKeypoint.new(0, Color3.fromHSV(0, 1, 1)),
+            ColorSequenceKeypoint.new(1, Color3.fromHSV(1, 1, 1))
         }
         Instance.new("UICorner", hueBar).CornerRadius = UDim.new(0, 8)
 
@@ -428,7 +435,9 @@ function MogUI:CreateGroupbox(parent, title)
                     currentHue = rel
                     updateColor()
                 end)
-                local endConn = UserInputService.InputEnded:Connect(function(i)
+
+                local endConn
+                endConn = UserInputService.InputEnded:Connect(function(i)
                     if i.UserInputType == Enum.UserInputType.MouseButton1 then
                         conn:Disconnect()
                         endConn:Disconnect()
